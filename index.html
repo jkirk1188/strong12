@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#087384">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Strong12">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<title>Strong12</title>
+<style>
+:root{
+  --bg:#EEF1F2; --surface:#FFFFFF; --ink:#12202A; --muted:#566772; --line:#D3DADE;
+  --teal:#087384; --teal-ink:#FFFFFF; --teal-soft:#DDEFF2; --zone:#2F86C9; --warn:#B4400C; --warn-soft:#FBE9DD; --ok:#1F7A4D;
+  --display:"Avenir Next Condensed","Roboto Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0F1A21; --surface:#172530; --ink:#E8EEF1; --muted:#93A4AF; --line:#2A3C47; --teal:#4CC3D3; --teal-ink:#06262C; --teal-soft:#16363F; --zone:#6DB4EB; --warn:#F0985F; --warn-soft:#3A2416; --ok:#5CCB92}
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--body);-webkit-tap-highlight-color:transparent}
+#app{max-width:560px;margin:0 auto}
+main{padding:calc(14px + env(safe-area-inset-top)) 16px calc(92px + env(safe-area-inset-bottom))}
+h1,h2,h3{margin:0;font-family:var(--display);font-weight:700;letter-spacing:.2px}
+h1{font-size:30px;line-height:1.1}
+h2{font-size:22px;margin:22px 0 8px}
+h3{font-size:18px}
+p{margin:0 0 8px}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.num{font-family:var(--display);font-weight:700;font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+
+/* tab bar */
+#tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:20}
+#tabs .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+#tabs button{border:0;background:none;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;color:var(--muted);min-height:58px}
+#tabs button svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#tabs button[aria-current="page"]{color:var(--teal);font-weight:600}
+
+/* plate strip */
+.strip{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin:12px 0 6px}
+.plate{border:0;background:none;padding:4px 0;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:68px;border-radius:12px}
+.plate svg{width:42px;height:42px}
+.plate .ring-bg{stroke:var(--line);fill:none;stroke-width:4}
+.plate .ring{stroke:var(--teal);fill:none;stroke-width:4;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%}
+.plate .dn{font-family:var(--display);font-weight:700;font-size:17px;fill:var(--ink)}
+.plate .dw{font-size:12px;color:var(--muted)}
+.plate[aria-pressed="true"]{background:var(--teal-soft)}
+.plate[aria-pressed="true"] .dw{color:var(--ink);font-weight:600}
+.plate.is-today .dw::after{content:" •";color:var(--teal)}
+
+/* cards & rows */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0}
+.card.flat{padding:0;overflow:hidden}
+.row{display:flex;align-items:center;gap:10px}
+.between{justify-content:space-between}
+.grow{flex:1;min-width:0}
+.pill{display:inline-block;border-radius:999px;padding:3px 10px;font-size:13px;background:var(--teal-soft);color:var(--teal);font-weight:600}
+.pill.zone{background:#E1EEF9;color:#1D5F95}
+@media (prefers-color-scheme:dark){.pill.zone{background:#16303F;color:var(--zone)}}
+.btn{border:0;border-radius:10px;background:var(--teal);color:var(--teal-ink);padding:12px 16px;font-weight:600;min-height:46px}
+.btn.ghost{background:transparent;color:var(--teal);border:1.5px solid var(--teal)}
+.btn.quiet{background:var(--teal-soft);color:var(--teal)}
+.btn.block{width:100%}
+.btn.sm{min-height:40px;padding:8px 12px;font-size:15px}
+.btn[disabled]{opacity:.5}
+.banner{display:flex;gap:10px;align-items:center;background:var(--teal-soft);border-radius:12px;padding:12px 14px;margin:10px 0;border:0;width:100%;text-align:left;color:var(--ink)}
+.banner.warn{background:var(--warn-soft)}
+.guard{font-size:13.5px;color:var(--muted);border-left:3px solid var(--warn);padding:2px 0 2px 10px;margin:12px 0}
+
+/* exercise & sets */
+.ex{padding:14px;border-top:1px solid var(--line)}
+.ex:first-child{border-top:0}
+.ex .nm{font-weight:650;font-size:17px}
+.sets{display:grid;gap:8px;margin-top:10px}
+.set{display:grid;grid-template-columns:22px 1fr 1fr 46px;gap:8px;align-items:center}
+.set.nw{grid-template-columns:22px 1fr 46px}
+.set .sn{color:var(--muted);text-align:center;font-size:14px}
+.fld{position:relative}
+.fld input{width:100%;height:46px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);padding:0 34px 0 10px;font-size:19px;text-align:center;font-family:var(--display);font-weight:700}
+.fld span{position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted);pointer-events:none}
+.chk{width:46px;height:46px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);display:grid;place-items:center}
+.chk svg{width:22px;height:22px;stroke:var(--teal-ink);fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.chk[aria-pressed="true"]{background:var(--teal);border-color:var(--teal)}
+.chk[aria-pressed="true"] svg{opacity:1}
+.hint{font-size:13.5px;color:var(--ok);font-weight:600;margin-top:8px}
+.blk{border-top:1px solid var(--line)}
+.blk:first-of-type{border-top:1px solid var(--line)}
+.blk .bh{padding:10px 14px;background:var(--teal-soft)}
+.blk.now{box-shadow:inset 5px 0 0 var(--teal)}
+.blk .tip{padding:10px 14px 0;margin:0}
+.addset{margin-top:8px;border:0;background:none;color:var(--teal);font-weight:600;padding:8px 0;min-height:40px}
+
+/* check list */
+.li{display:flex;align-items:center;gap:12px;padding:11px 14px;border-top:1px solid var(--line);min-height:52px}
+.li:first-child{border-top:0}
+.li .t{flex:1}
+.li input[type=number],.li input[type=text]{width:84px;height:42px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);text-align:center;font-size:17px;font-family:var(--display);font-weight:700}
+.box{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);display:grid;place-items:center;flex:none}
+.box svg{width:18px;height:18px;stroke:var(--teal-ink);fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.box[aria-pressed="true"]{background:var(--teal);border-color:var(--teal)}
+.box[aria-pressed="true"] svg{opacity:1}
+
+/* fuel */
+.bar{height:12px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--teal);border-radius:99px;transition:width .25s}
+.bar.k i{background:var(--zone)}
+.fuel-n{font-size:30px;line-height:1}
+.entry{display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-top:1px solid var(--line);font-size:15px}
+.entry button{border:0;background:none;color:var(--muted);padding:0 6px;min-height:32px}
+
+/* meals */
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--line);border-radius:10px;padding:3px;gap:3px;margin:10px 0}
+.seg button{border:0;background:none;border-radius:8px;padding:9px 4px;font-weight:600;color:var(--muted);min-height:42px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink)}
+.meal{padding:12px 14px;border-top:1px solid var(--line)}
+.meal:first-child{border-top:0}
+.meal .nm{font-weight:650}
+.meal .mx{font-size:14px;color:var(--muted)}
+
+/* forms */
+label.f{display:block;font-size:14px;color:var(--muted);margin-bottom:4px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form .full{grid-column:1/-1}
+.form input,.form select,.form textarea,.inp{width:100%;min-height:46px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);padding:8px 10px;font-size:17px}
+textarea.inp{min-height:90px}
+details.card{padding:0}
+details.card summary{list-style:none;padding:14px;font-weight:650;display:flex;justify-content:space-between;align-items:center;min-height:52px;cursor:pointer}
+details.card summary::-webkit-details-marker{display:none}
+details.card summary::after{content:"+";font-size:22px;color:var(--teal)}
+details.card[open] summary::after{content:"–"}
+details.card .body{padding:0 14px 14px}
+details.card .body ul{margin:6px 0;padding-left:20px}
+details.card .body li{margin:4px 0}
+table.t{width:100%;border-collapse:collapse;font-size:14.5px}
+table.t th,table.t td{text-align:left;padding:7px 6px;border-top:1px solid var(--line)}
+table.t th{color:var(--muted);font-weight:600;border-top:0}
+
+/* rest timer, toast */
+#rest{position:fixed;left:12px;right:12px;bottom:calc(70px + env(safe-area-inset-bottom));max-width:536px;margin:0 auto;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 12px;display:none;align-items:center;justify-content:space-between;z-index:30}
+#rest.on{display:flex}
+#rest b{font-family:var(--display);font-size:26px}
+#rest button{border:0;border-radius:8px;background:var(--bg);color:var(--ink);padding:8px 14px;font-weight:600;min-height:40px}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom));background:var(--ink);color:var(--bg);border-radius:10px;padding:10px 14px;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:40;max-width:90%}
+#toast.on{opacity:1}
+svg.spark{width:100%;height:56px;display:block}
+.spark polyline{fill:none;stroke:var(--teal);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.spark circle{fill:var(--teal)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <main id="view"></main>
+  <div id="rest" role="timer" aria-live="off"><span>Rest <b id="restn">0:00</b></span><button data-a="restskip">Skip</button></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <nav id="tabs" aria-label="Main"><div class="in">
+    <button data-a="tab" data-v="today"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>Today</button>
+    <button data-a="tab" data-v="week"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Week</button>
+    <button data-a="tab" data-v="meals"><svg viewBox="0 0 24 24"><path d="M6 3v8a2 2 0 0 0 2 2v8M10 3v8M6 7h4M17 3c-2 2-2.5 5-2 8h2v10"/></svg>Meals</button>
+    <button data-a="tab" data-v="log"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l4-4 3 3 5-6"/></svg>Log</button>
+    <button data-a="tab" data-v="plan"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h7"/></svg>Plan</button>
+  </div></nav>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ---------- helpers ---------- */
+const KEY = 'strong12.v1';
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pad = (n) => String(n).padStart(2, '0');
+const dk = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const pk = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const add = (k, n) => { const d = pk(k); d.setDate(d.getDate() + n); return dk(d); };
+const today = () => dk(new Date());
+const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DOWL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const fmt = (k) => { const d = pk(k); return DOWL[d.getDay()] + ', ' + MON[d.getMonth()] + ' ' + d.getDate(); };
+const fmtShort = (k) => { const d = pk(k); return MON[d.getMonth()] + ' ' + d.getDate(); };
+const weekStart = (k) => add(k, -((pk(k).getDay() + 6) % 7));
+const num = (v) => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+const CHECK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+/* ---------- state ---------- */
+const DEF = () => ({
+  v: 1,
+  settings: { start: today(), protein: 160, kcal: 2300, water: 100,
+    supps: ['Creatine with morning coffee', 'Vitamin D3 + K2 with first meal', 'Magnesium glycinate at bedtime'], lastBackup: '',
+    ldl: ['Oats or barley: ¾ cup dry, about 3 g beta-glucan (split across meals)', 'Beans or lentils: 1 cup cooked', 'Nuts: 1 oz, a small handful of walnuts or almonds', 'Olive oil in place of butter', 'Psyllium husk, if you use it: 10 g, 2 hours from other supplements', 'Plant sterols, if you use them: about 2 g'] },
+  days: {}, scans: [], measures: [], labs: [], recovery: {}, grocery: {}, qs: {}
+});
+let S;
+function load() {
+  try {
+    const r = localStorage.getItem(KEY);
+    if (r) { const o = JSON.parse(r); const d = DEF(); return { ...d, ...o, settings: { ...d.settings, ...(o.settings || {}) } }; }
+  } catch (e) { /* fall through */ }
+  return DEF();
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast('Could not save. Storage may be full or blocked.'); } }
+S = load(); save();
+const D = (k) => S.days[k] || {};
+const W = (k) => S.days[k] || (S.days[k] = {});
+const ui = { tab: 'today', date: today(), meals: 'menu', log: 'scan', hist: false };
+
+/* ---------- plan data ---------- */
+const SCHED = {
+  0: { type: 'rest', title: 'Rest day', sub: 'An easy 30 minute walk is optional.' },
+  1: { type: 'strength', w: 'A', title: 'Strength A', sub: 'Legs and push', min: '50' },
+  2: { type: 'z2', title: 'Zone 2 walk', sub: '45–60 minutes at a pace where you can talk in full sentences', min: '45–60' },
+  3: { type: 'strength', w: 'B', title: 'Strength B', sub: 'Pull and posterior chain', min: '50' },
+  4: { type: 'z2', title: 'Zone 2: row and walk', sub: '30 minutes rowing, 15 minutes walking, then 10 minutes of mobility', min: '55' },
+  5: { type: 'strength', w: 'C', title: 'Strength C', sub: 'Full body, lighter', min: '50' },
+  6: { type: 'z2', title: 'Long Zone 2 walk', sub: '60–75 minutes, a good one to do with family', min: '60–75' }
+};
+const WK = {
+  A: [
+    { id: 'a1', n: 'Leg press or goblet squat', sets: 3, reps: '8–12', note: 'ParaBody leg press, or goblet squat holding a 45' },
+    { id: 'a2', n: 'Box step-ups', sets: 3, reps: '8–10 / side', note: 'Hold 30s' },
+    { id: 'a3', n: 'Chest press', sets: 3, reps: '8–12', note: 'ParaBody chest press or dumbbell press' },
+    { id: 'a4', n: 'Overhead press', sets: 2, reps: '8–10', note: 'Dumbbells; use 30s if 45s are too heavy' },
+    { id: 'a5', n: 'Triceps pushdown', sets: 2, reps: '12–15', note: 'Band or cable' },
+    { id: 'a6', n: 'Dead bug', sets: 2, reps: '8 / side', bw: true, note: 'Slow and controlled' }
+  ],
+  B: [
+    { id: 'b1', n: 'Romanian deadlift', sets: 3, reps: '8–12', note: 'Dumbbells. Only if your back and hips feel fine' },
+    { id: 'b2', n: 'Lat pulldown', sets: 3, reps: '8–12', note: 'ParaBody' },
+    { id: 'b3', n: 'Seated or one-arm row', sets: 3, reps: '10 / side', note: 'ParaBody seated row, or one-arm dumbbell row' },
+    { id: 'b4', n: 'Hip bridge or hip thrust', sets: 3, reps: '10–12', note: 'Add a dumbbell on your hips when easy' },
+    { id: 'b5', n: 'Band pull-apart or face pull', sets: 2, reps: '15', bw: true, note: 'Band' },
+    { id: 'b6', n: 'Dumbbell curl', sets: 2, reps: '10–12', note: '' },
+    { id: 'b7', n: 'Farmer carry', sets: 3, reps: '30–40 s', timed: true, note: 'Dumbbells, steady breathing' }
+  ],
+  C: [
+    { id: 'c1', n: 'Wall sit', sets: 3, reps: '30–45 s', timed: true, bw: true, note: 'Back flat on the wall' },
+    { id: 'c2', n: 'Terminal knee extension', sets: 2, reps: '15', bw: true, note: 'Band around the knee' },
+    { id: 'c3', n: 'Push-up or floor press', sets: 3, reps: '8–12', note: 'Weight is for the floor press' },
+    { id: 'c4', n: 'Band row', sets: 3, reps: '12–15', bw: true, note: 'Band' },
+    { id: 'c5', n: 'Pallof press', sets: 2, reps: '10 / side', bw: true, note: 'Band' }
+  ]
+};
+const FLOW = [
+  { id: 'warm', t: 'Warm-up', m: 6, tip: 'Easy row or walk for 3 minutes with heart rate under 110. Then one light set of your first lift at about half weight.' },
+  { id: 'b1', t: 'Main lifts', m: 20, tip: 'Rest 75–90 seconds between sets. Stop each set 1–3 reps short of failure and breathe out on the effort.' },
+  { id: 'b2', t: 'Accessories', m: 16, tip: 'Slow and controlled. Rest about 60 seconds between sets.' },
+  { id: 'fin', t: 'Easy finisher', m: 6, tip: 'Rower or brisk walk at an easy effort, heart rate at or below 127. You should be able to speak in full sentences.' },
+  { id: 'cool', t: 'Cool-down', m: 2, tip: 'Slow breathing until your heart rate settles.' }
+];
+
+const M1 = [
+  { id: 'm1a', n: 'Protein oats with walnuts', d: '¾ cup dry oats, 1 scoop whey, 1 tbsp walnuts, berries, cinnamon', k: 450, p: 38 },
+  { id: 'm1b', n: 'Greek yogurt oat bowl', d: '1½ cups plain nonfat Greek yogurt, ⅓ cup raw oats, blueberries, 1 tbsp walnuts, 1 tbsp ground flax', k: 480, p: 41 },
+  { id: 'm1c', n: 'Egg, chicken and black bean bowl', d: '2 eggs, 3 oz chicken, ½ cup black beans, spinach, salsa, ¼ avocado', k: 500, p: 48 },
+  { id: 'm1d', n: 'Cottage cheese plate with almonds', d: '1 cup low-fat cottage cheese, 2 hard-boiled eggs, 1 oz almonds, berries', k: 520, p: 46 },
+  { id: 'm1e', n: 'Savory oatmeal bowl', d: '¾ cup oats cooked in broth, 2 eggs cooked in 1 tsp olive oil, 4 oz diced turkey, spinach', k: 520, p: 44 }
+];
+const LUNCH = [
+  { id: 'l1', n: 'Chicken and black bean burrito bowl', d: '6 oz chicken, ¾ cup black beans, ½ cup brown rice, pico, romaine, ¼ avocado', k: 660, p: 56 },
+  { id: 'l2', n: 'Turkey and hummus wrap', d: 'Whole-wheat wrap, 5 oz turkey, 2 tbsp hummus, vegetables, an apple', k: 560, p: 44 },
+  { id: 'l3', n: 'Chicken and lentil bowl', d: '6 oz chicken, ¾ cup cooked lentils, roasted vegetables, olive oil and lemon', k: 620, p: 53 },
+  { id: 'l4', n: 'Mediterranean chicken salad', d: '6 oz chicken, romaine, ½ cup chickpeas, cucumber, tomato, olives, 1 tbsp feta, olive oil and lemon', k: 600, p: 52 },
+  { id: 'l5', n: 'Greek chicken pita with white beans', d: '5 oz chicken, cucumber, tomato, yogurt sauce, whole-wheat pita, ½ cup white beans', k: 620, p: 50 }
+];
+const DIN = {
+  1: { id: 'd1', n: 'Sheet-pan chicken, potatoes and broccoli', d: '8 oz chicken breast, 1 cup potatoes, 2 cups broccoli, 1 tbsp olive oil', k: 690, p: 58 },
+  2: { id: 'd2', n: 'Turkey tacos with black beans', d: '6 oz 93% ground turkey, 2 corn tortillas, cabbage slaw, salsa, ¼ avocado, ½ cup black beans', k: 710, p: 52 },
+  3: { id: 'd3', n: 'Sirloin with green beans and sweet potato', d: '8 oz sirloin (your one red-meat dinner this week), 1 lb green beans, 1 baked sweet potato', k: 720, p: 55 },
+  4: { id: 'd4', n: 'Garlic shrimp and vegetable stir-fry', d: '8 oz shrimp, mixed vegetables, 1 cup rice, 1 tbsp olive oil', k: 650, p: 48 },
+  5: { id: 'd5', n: 'Pizza night with a big salad', d: '2 slices thin-crust pizza with chicken and vegetables, large salad with olive oil and lemon', k: 700, p: 40 },
+  6: { id: 'd6', n: 'Turkey burger with white bean salad', d: '6 oz 93% turkey patty, whole-wheat bun, white bean and tomato salad with olive oil', k: 700, p: 52 },
+  0: { id: 'd0', n: 'Chicken and three-bean chili', d: '1½ cups chili, 2 tbsp Greek yogurt on top, a side salad', k: 600, p: 50 }
+};
+const LIGHT = [
+  { id: 'x1', n: 'Sliced chicken and a big salad', d: '6 oz chicken, large salad, olive oil and lemon', k: 450, p: 45 },
+  { id: 'x2', n: 'Shrimp and vegetable sauté', d: '6 oz shrimp, mixed vegetables, 1 tbsp olive oil', k: 400, p: 40 },
+  { id: 'x3', n: 'Greek yogurt, berries and walnuts', d: '1½ cups yogurt, berries, 1 tbsp walnuts', k: 350, p: 38 },
+  { id: 'x4', n: 'Chicken and white bean soup', d: '5 oz chicken, 1 cup white beans, vegetables, broth, olive oil', k: 420, p: 42 }
+];
+const GROCERY = [
+  ['Heart-friendly staples', ['Rolled or steel-cut oats, large canister', 'Pearled barley (optional)', 'Psyllium husk (optional, check the label for 10 g)', 'Plant sterol spread or capsules (optional)', 'Ground flaxseed', 'Walnuts', 'Almonds', 'Extra-virgin olive oil', 'Olives']],
+  ['Protein', ['Chicken breast, about 3½ lb', 'Eggs, 1½ dozen', 'Lean ground turkey 93%, 2 lb (tacos) plus 3 turkey patties', 'Sirloin steak, 8 oz', 'Shrimp, 1 lb', 'Deli turkey, 10 oz', 'Low-fat cottage cheese, 2 tubs', 'Plain nonfat Greek yogurt, 2 large tubs', 'Whey protein (check the tub)']],
+  ['Beans and lentils', ['Black beans, 4 cans', 'Chickpeas, 2 cans', 'White beans, 3 cans', 'Kidney beans for chili, 2 cans', 'Lentils, dry or canned', 'Hummus']],
+  ['Produce', ['Spinach', 'Romaine', 'Broccoli, 3 crowns', 'Green beans, 1 lb', 'Sweet potatoes, 3', 'Potatoes, 1½ lb', 'Cabbage slaw mix', 'Avocados, 4', 'Berries, 2 containers', 'Bananas', 'Tomatoes and cucumbers', 'Onions, garlic, bell peppers', 'Lemons', 'Mixed stir-fry vegetables']],
+  ['Pantry and other', ['Brown rice and regular rice', 'Corn tortillas', 'Whole-wheat wraps and pitas', 'Whole-wheat buns', 'Diced tomatoes, chicken broth', 'Salsa', 'Chili spices', 'Feta, small block', 'Thin-crust pizza (Friday)']]
+];
+
+/* ---------- derived values ---------- */
+const dayIdx = (k) => Math.round((pk(k) - pk(S.settings.start)) / 864e5);
+const weekNum = (k) => { const i = dayIdx(k); return i < 0 ? 0 : Math.floor(i / 7) + 1; };
+const sched = (k) => SCHED[pk(k).getDay()];
+const ldlN = (d) => S.settings.ldl.filter((_, i) => d.ldl && d.ldl[i]).length;
+const totals = (d) => (d.fuel || []).reduce((a, e) => ({ p: a.p + num(e.p), k: a.k + num(e.k) }), { p: 0, k: 0 });
+function dayFrac(k) {
+  const d = D(k); const sc = sched(k); const it = [];
+  if (sc.type !== 'rest') it.push(!!d.done);
+  it.push(totals(d).p >= S.settings.protein * 0.9);
+  it.push(num(d.water) >= S.settings.water);
+  if (S.settings.supps.length) it.push(S.settings.supps.every((_, i) => d.supp && d.supp[i]));
+  if (S.settings.ldl.length) it.push(ldlN(d) >= Math.min(4, S.settings.ldl.length));
+  it.push(!!d.walk);
+  return it.filter(Boolean).length / it.length;
+}
+function lastTime(k, id) {
+  const keys = Object.keys(S.days).filter((x) => x < k).sort().reverse();
+  for (const x of keys) {
+    const s = (S.days[x].sets || {})[id];
+    if (s) {
+      const done = s.filter((y) => y.d && (y.r || y.w));
+      if (done.length) return done.reduce((b, y) => (num(y.w) > num(b.w) || (num(y.w) === num(b.w) && num(y.r) > num(b.r)) ? y : b));
+    }
+  }
+  return null;
+}
+function setsFor(k, ex) {
+  const day = W(k); day.sets = day.sets || {};
+  if (!day.sets[ex.id]) {
+    const last = lastTime(k, ex.id);
+    day.sets[ex.id] = Array.from({ length: ex.sets }, () => ({ w: last && !ex.bw ? last.w : '', r: last ? last.r : '', d: false }));
+  }
+  return day.sets[ex.id];
+}
+const topRep = (r) => { const m = String(r).match(/\d+/g); return m ? Math.max(...m.slice(0, 2).map(Number)) : 0; };
+const pick = (list, base, k, slot) => list[(base + ((D(k).sw || {})[slot] || 0)) % list.length];
+
+
+/* ---------- flags: what is due right now ---------- */
+const lastOf = (arr, f) => arr.filter((x) => (f ? x[f] : true)).map((x) => x.date).sort().pop() || '';
+const ago = (a, k) => Math.round((pk(k) - pk(a)) / 864e5);
+function rhrFlag(k) {
+  const vals = (a, b) => { const o = []; for (let i = a; i <= b; i++) { const v = num(D(add(k, -i)).rhr); if (v) o.push(v); } return o; };
+  const rec = vals(0, 2), base = vals(3, 16); const m = (a) => a.reduce((t, v) => t + v, 0) / a.length;
+  return rec.length >= 2 && base.length >= 5 && m(rec) - m(base) >= 5;
+}
+function deloadDue(k) {
+  const ws = weekStart(k); if (S.recovery[ws]) return false;
+  const recs = Object.keys(S.recovery).filter((x) => S.recovery[x] && x <= ws).sort();
+  return ago(recs.length ? recs[recs.length - 1] : S.settings.start, ws) >= 56;
+}
+function flags(k) {
+  if (k !== today() || dayIdx(k) < 0) return '';
+  const b = (txt, v, sub, cls) => `<button class="banner${cls ? ' ' + cls : ''}" data-a="goto" data-v="${v}"${sub ? ` data-s="${sub}"` : ''}><span class="grow">${txt}</span><span class="pill">Open</span></button>`;
+  let h = ''; const ls = lastOf(S.scans), lw = lastOf(S.measures, 'waist'), ll = lastOf(S.labs);
+  if (!ls) h += b('<b>Baseline scan.</b> Step on the scale before eating or drinking, then enter it.', 'log', 'scan');
+  else if (ago(ls, k) >= 28) h += b(`<b>Scan due.</b> Your last scan was ${ago(ls, k)} days ago. Review your numbers against the decision rules in Plan.`, 'log', 'scan');
+  if (!lw) h += b('<b>Waist baseline.</b> Measure midway between your lowest rib and your hip bone, relaxed, after exhaling.', 'log', 'measure');
+  else if (ago(lw, k) >= 14) h += b(`<b>Waist check due.</b> Last measured ${ago(lw, k)} days ago.`, 'log', 'measure');
+  if (!ll) h += b('<b>Add your latest labs.</b> Lipids, A1c and vitamin D give you a baseline to compare against.', 'log', 'labs');
+  else if (ago(ll, k) >= 84) h += b(`<b>Labs due.</b> Your last labs were ${ago(ll, k)} days ago. Ask your PA for lipids, vitamin D and a blood count.`, 'log', 'labs');
+  if (rhrFlag(k)) h += b('<b>Recovery flag.</b> Your resting HR is running 5+ bpm above your recent normal. Consider an easy week.', 'week', '', 'warn');
+  else if (deloadDue(k)) h += b('<b>Easy week suggested.</b> It has been 8 weeks without one. Mark a recovery week if you feel run down.', 'week', '', 'warn');
+  const n = Object.keys(S.days).length;
+  if (n >= 7 && (!S.settings.lastBackup || ago(S.settings.lastBackup, k) >= 30)) h += b('<b>Back up your data.</b> Your entries live only on this phone.', 'plan');
+  return h;
+}
+
+/* ---------- toast & rest timer ---------- */
+let toastT;
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2200); }
+let restI, restEnd = 0;
+function startRest(sec) {
+  restEnd = Date.now() + sec * 1000; $('#rest').classList.add('on'); clearInterval(restI);
+  const tick = () => {
+    const left = Math.max(0, Math.round((restEnd - Date.now()) / 1000));
+    $('#restn').textContent = Math.floor(left / 60) + ':' + pad(left % 60);
+    if (left <= 0) { clearInterval(restI); try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) {} setTimeout(() => $('#rest').classList.remove('on'), 2500); }
+  };
+  tick(); restI = setInterval(tick, 500);
+}
+
+/* ---------- renderers ---------- */
+function ring(f, dn, wd, sel, isToday, k) {
+  const C = 2 * Math.PI * 17;
+  return `<button class="plate${isToday ? ' is-today' : ''}" data-a="date" data-k="${k}" aria-pressed="${sel}" aria-label="${DOWL[pk(k).getDay()]} ${dn}, ${Math.round(f * 100)} percent done">
+    <svg viewBox="0 0 42 42"><circle class="ring-bg" cx="21" cy="21" r="17"/>${f > 0 ? `<circle class="ring" cx="21" cy="21" r="17" stroke-dasharray="${(f * C).toFixed(1)} ${C.toFixed(1)}"/>` : ''}<text class="dn" x="21" y="26.5" text-anchor="middle">${dn}</text></svg>
+    <span class="dw">${wd}</span></button>`;
+}
+function renderToday() {
+  const k = ui.date, d = D(k), sc = sched(k), wk = weekNum(k);
+  const ws = weekStart(k); let strip = '';
+  for (let i = 0; i < 7; i++) { const x = add(ws, i); strip += ring(dayFrac(x), pk(x).getDate(), DOW[pk(x).getDay()], x === k, x === today(), x); }
+  const prompts = flags(k) + (S.recovery[weekStart(k)] ? `<div class="banner warn"><span class="grow"><b>Recovery week.</b> Do 2 sets per lift at about 60% effort and keep walks easy.</span></div>` : '');
+  let session = '';
+  if (sc.type === 'strength') {
+    const exs = WK[sc.w];
+    const exHTML = (ex) => {
+      const sets = setsFor(k, ex), last = lastTime(k, ex.id), top = topRep(ex.reps);
+      const allDone = sets.length && sets.every((s) => s.d) && sets.every((s) => num(s.r) >= top);
+      const unit = ex.timed ? 'sec' : 'reps';
+      return `<div class="ex"><div class="row between"><div class="grow"><div class="nm">${esc(ex.n)}</div><div class="small muted">${sets.length} × ${esc(ex.reps)}${ex.note ? ' · ' + esc(ex.note) : ''}</div></div></div>
+        ${last ? `<div class="small muted" style="margin-top:4px">Last time: ${last.w ? esc(last.w) + ' lb × ' : ''}${esc(last.r)}</div>` : ''}
+        <div class="sets">${sets.map((s, i) => `<div class="set${ex.bw ? ' nw' : ''}"><span class="sn">${i + 1}</span>
+          ${ex.bw ? '' : `<div class="fld"><input inputmode="decimal" data-f="set" data-ex="${ex.id}" data-i="${i}" data-p="w" value="${esc(s.w)}" aria-label="Set ${i + 1} weight in pounds"><span>lb</span></div>`}
+          <div class="fld"><input inputmode="numeric" data-f="set" data-ex="${ex.id}" data-i="${i}" data-p="r" value="${esc(s.r)}" aria-label="Set ${i + 1} ${unit}"><span>${unit}</span></div>
+          <button class="chk" data-a="tset" data-ex="${ex.id}" data-i="${i}" aria-pressed="${!!s.d}" aria-label="Mark set ${i + 1} done">${CHECK}</button></div>`).join('')}</div>
+        <button class="addset" data-a="addset" data-ex="${ex.id}">+ Add a set</button>
+        ${allDone && !ex.timed ? '<div class="hint">You hit the top of the range. Add weight next time.</div>' : ''}</div>`;
+    };
+    let cum = 0;
+    const blocks = FLOW.map((b) => {
+      const from = cum; cum += b.m; let inner;
+      if (b.id === 'b1') inner = `<p class="small muted tip">${esc(b.tip)}</p>` + exs.slice(0, 3).map(exHTML).join('');
+      else if (b.id === 'b2') inner = `<p class="small muted tip">${esc(b.tip)}</p>` + exs.slice(3).map(exHTML).join('');
+      else inner = `<div class="li"><button class="box" data-a="blk" data-b="${b.id}" aria-pressed="${!!(d.blk && d.blk[b.id])}" aria-label="${b.t} done">${CHECK}</button><span class="t small">${esc(b.tip)}</span></div>`;
+      return `<section class="blk" data-from="${from}" data-to="${cum}"><div class="bh row between"><b>${b.t}</b><span class="small muted">${b.m} min</span></div>${inner}</section>`;
+    }).join('');
+    const clock = d.start
+      ? `<div class="row between" style="margin-top:10px"><span class="small muted">Time left</span><b class="num" id="sclock" style="font-size:26px">50:00</b><button class="btn sm ghost" data-a="sreset">Reset</button></div>`
+      : `<button class="btn block" data-a="sstart" style="margin-top:10px">Start 50-minute session</button>`;
+    session = `<div class="card flat"><div style="padding:14px 14px 12px"><div class="row between"><h2 style="margin:0">${sc.title}</h2><span class="pill">50 min</span></div><p class="muted small" style="margin-top:4px">${esc(sc.sub)}. Five timed blocks, like a coached session.</p>${clock}</div>${blocks}
+      <div style="padding:14px"><button class="btn block${d.done ? ' quiet' : ''}" data-a="done">${d.done ? 'Session finished' : 'Finish session'}</button></div></div>`;
+  } else if (sc.type === 'z2') {
+    session = `<div class="card"><div class="row between"><h2 style="margin:0">${sc.title}</h2><span class="pill zone">Zone 2</span></div>
+      <p class="muted small" style="margin-top:4px">${esc(sc.sub)}. Target heart rate 109–127 bpm on your Polar chest strap. Drifting above 127? Slow down.</p>
+      <div class="form" style="margin:12px 0"><div><label class="f" for="zmin">Minutes</label><input id="zmin" class="inp" inputmode="numeric" data-f="day" data-p="zmin" value="${esc(d.zmin || '')}" placeholder="${esc(sc.min)}"></div>
+      <div><label class="f" for="zhr">Average HR (bpm)</label><input id="zhr" class="inp" inputmode="numeric" data-f="day" data-p="zhr" value="${esc(d.zhr || '')}"></div></div>
+      <button class="btn block${d.done ? ' quiet' : ''}" data-a="done">${d.done ? 'Session finished' : 'Finish session'}</button></div>`;
+  } else {
+    session = `<div class="card"><div class="row between"><div class="grow"><h2 style="margin:0">${sc.title}</h2><p class="muted small" style="margin:4px 0 0">${esc(sc.sub)}</p></div><button class="chk" data-a="done" aria-pressed="${!!d.done}" aria-label="Easy walk done">${CHECK}</button></div></div>`;
+  }
+
+  const supp = S.settings.supps.map((t, i) => `<div class="li"><button class="box" data-a="supp" data-i="${i}" aria-pressed="${!!(d.supp && d.supp[i])}" aria-label="${esc(t)}">${CHECK}</button><span class="t">${esc(t)}</span></div>`).join('');
+  const water = num(d.water), tt = totals(d), pp = Math.min(100, tt.p / S.settings.protein * 100), kp = Math.min(100, tt.k / S.settings.kcal * 100);
+  const lunchBase = (pk(k).getDay() + 2) % 5, m1Base = pk(k).getDay() % 5;
+  const m1 = pick(M1, m1Base, k, 'm1'), lu = pick(LUNCH, lunchBase, k, 'l'), dn = d.open ? pick(LIGHT, 0, k, 'x') : DIN[pk(k).getDay()];
+  const mealRow = (slot, label, time, m, swapKey) => {
+    const logged = (d.fuel || []).some((e) => e.mid === m.id);
+    return `<div class="meal"><div class="row between"><div class="grow"><div class="small muted">${label} · ${time}</div><div class="nm">${esc(m.n)}</div><div class="mx">${esc(m.d)}</div><div class="mx">~${m.k} kcal · ${m.p} g protein</div></div>
+      <div style="display:grid;gap:6px">${logged ? `<button class="btn sm quiet" data-a="unmeal" data-id="${m.id}">Logged</button>` : `<button class="btn sm" data-a="meal" data-id="${m.id}" data-slot="${slot}">Log</button>`}${swapKey ? `<button class="btn sm ghost" data-a="swap" data-slot="${swapKey}">Swap</button>` : ''}</div></div></div>`;
+  };
+  const lunchBlock = d.open
+    ? `<div class="meal"><div class="small muted">Lunch · open meal</div><div class="nm">Eat what you came for</div><div class="mx">Lead with protein and vegetables, then enjoy the rest. Dinner tonight is the light option below.</div>
+       <div class="row" style="margin-top:8px"><button class="btn sm quiet" data-a="openlog">Log estimate: 800 kcal, 40 g</button></div></div>`
+    : mealRow('l', 'Lunch', 'about 1–2 PM', lu, 'l');
+
+  const ldlList = S.settings.ldl, ldlNeed = Math.min(4, ldlList.length), ldlGot = ldlN(d);
+  const ldlHTML = ldlList.map((t, i) => `<div class="li"><button class="box" data-a="ldl" data-i="${i}" aria-pressed="${!!(d.ldl && d.ldl[i])}" aria-label="${esc(t)}">${CHECK}</button><span class="t">${esc(t)}</span></div>`).join('');
+  const entries = (d.fuel || []).map((e, i) => `<div class="entry"><span>${esc(e.t)} <span class="muted">· ${num(e.p)} g · ${num(e.k)} kcal</span></span><button data-a="delfuel" data-i="${i}" aria-label="Remove ${esc(e.t)}">✕</button></div>`).join('');
+
+  $('#view').innerHTML = `
+    <div class="row between"><div><h1>${fmt(k).split(',')[0]}</h1><div class="muted">${fmtShort(k)}</div></div>
+    <div style="text-align:right"><div class="pill">${wk > 0 ? 'Week ' + wk : 'Starts ' + fmtShort(S.settings.start)}</div></div></div>
+    <div class="strip" role="group" aria-label="Week">${strip}</div>
+    ${prompts}
+    ${session}
+    <div class="guard">Stop and tell your PA about chest pain or pressure, palpitations, lightheadedness or unusual breathlessness. No hard intervals until you have been cleared.</div>
+
+    <h2>Fuel</h2>
+    <div class="card">
+      <div class="row between"><div><div class="fuel-n num">${Math.round(tt.p)} <span class="small muted">/ ${S.settings.protein} g protein</span></div></div><div style="text-align:right"><div class="fuel-n num">${Math.round(tt.k)} <span class="small muted">/ ${S.settings.kcal} kcal</span></div></div></div>
+      <div class="bar" style="margin-top:10px"><i style="width:${pp}%"></i></div><div class="bar k" style="margin-top:6px"><i style="width:${kp}%"></i></div>
+      <div class="row" style="margin-top:12px;flex-wrap:wrap"><button class="btn sm quiet" data-a="quick" data-t="Whey shake" data-p="25" data-k="150">+ Whey shake</button>
+      <button class="btn sm quiet" data-a="quick" data-t="Nuts, 1 oz" data-p="6" data-k="170">+ Nuts</button>
+      <button class="btn sm quiet" data-a="quick" data-t="Snack" data-p="15" data-k="200">+ Snack</button>
+      <button class="btn sm ghost" data-a="custom">+ Custom</button></div>
+      ${entries ? `<div style="margin-top:10px">${entries}</div>` : ''}
+    </div>
+    <div class="card flat">
+      <div class="li"><span class="t"><b>Open lunch today</b><div class="small muted">Fine dining or a work lunch. Dinner switches to a light option.</div></span><button class="box" data-a="open" aria-pressed="${!!d.open}" aria-label="Open lunch today">${CHECK}</button></div>
+      ${mealRow('m1', 'First meal', 'about 11 AM', m1, 'm1')}
+      ${lunchBlock}
+      ${mealRow('d', d.open ? 'Light dinner' : 'Dinner', '6–6:30 PM', dn, d.open ? 'x' : '')}
+    </div>
+
+    ${ldlList.length ? `<h2>Heart-friendly foods</h2>
+    <div class="card flat"><div class="li"><span class="t small muted">${ldlGot} of ${ldlNeed} today. These are the foods that lower LDL the most. Your meals already include most of them.</span></div>${ldlHTML}</div>` : ''}
+
+    <h2>Daily basics</h2>
+    <div class="card flat">
+      <div class="li"><span class="t">Resting HR, seated (bpm)</span><input type="number" inputmode="numeric" data-f="day" data-p="rhr" value="${esc(d.rhr || '')}" aria-label="Resting heart rate"></div>
+      ${supp}
+      <div class="li"><button class="box" data-a="walk" aria-pressed="${!!d.walk}" aria-label="Post-lunch walk">${CHECK}</button><span class="t">10–15 minute walk after lunch</span></div>
+      <div class="li"><span class="t">Water<div class="small muted">${water} / ${S.settings.water} oz</div></span><button class="btn sm quiet" data-a="water" data-n="-16">−16</button><button class="btn sm" data-a="water" data-n="16">+16 oz</button></div>
+      <div class="li"><span class="t">Steps</span><input type="number" inputmode="numeric" data-f="day" data-p="steps" value="${esc(d.steps || '')}" aria-label="Steps"></div>
+      <div class="li"><span class="t">Sleep (hours)</span><input type="number" inputmode="decimal" step="0.1" data-f="day" data-p="sleep" value="${esc(d.sleep || '')}" aria-label="Hours of sleep"></div>
+    </div>`;
+}
+
+function renderWeek() {
+  const k = ui.date, ws = weekStart(k), wk = weekNum(k);
+  let str = 0, zmin = 0, ldlDays = 0, pr = [], steps = [], rows = '';
+  for (let i = 0; i < 7; i++) {
+    const x = add(ws, i), d = D(x), sc = sched(x), t = totals(d);
+    if (sc.type === 'strength' && d.done) str++;
+    zmin += num(d.zmin); if (S.settings.ldl.length && ldlN(d) >= Math.min(4, S.settings.ldl.length)) ldlDays++; if (t.p) pr.push(t.p); if (num(d.steps)) steps.push(num(d.steps));
+    const f = dayFrac(x);
+    rows += `<button class="li" data-a="date" data-go="today" data-k="${x}" style="width:100%;border:0;border-top:1px solid var(--line);background:none;text-align:left;color:inherit"><span class="num" style="width:40px;font-size:19px">${DOW[pk(x).getDay()]}</span><span class="t">${sc.title}<div class="small muted">${sc.type === 'rest' ? 'Optional easy walk' : sc.sub.split(',')[0].split(' at a pace')[0]}</div></span><span class="pill" style="${f >= 1 ? '' : 'background:var(--line);color:var(--muted)'}">${Math.round(f * 100)}%</span></button>`;
+  }
+  const avg = (a) => (a.length ? Math.round(a.reduce((s, v) => s + v, 0) / a.length) : '–');
+  $('#view').innerHTML = `
+    <div class="row between"><h1>This week</h1><span class="pill">${wk > 0 ? 'Week ' + wk : 'Starts ' + fmtShort(S.settings.start)}</span></div>
+    <div class="row between" style="margin:10px 0"><button class="btn sm ghost" data-a="date" data-go="week" data-k="${add(ws, -7)}">Previous</button><span class="muted small">${fmtShort(ws)} – ${fmtShort(add(ws, 6))}</span><button class="btn sm ghost" data-a="date" data-go="week" data-k="${add(ws, 7)}">Next</button></div>
+    <div class="card"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px 6px;text-align:center">
+      <div><div class="num" style="font-size:30px">${str}/3</div><div class="small muted">Strength</div></div>
+      <div><div class="num" style="font-size:30px">${zmin || 0}</div><div class="small muted">Zone 2 min</div></div>
+      <div><div class="num" style="font-size:30px">${ldlDays}/7</div><div class="small muted">Heart-food days</div></div>
+      <div><div class="num" style="font-size:30px">${avg(pr)}</div><div class="small muted">Avg protein g</div></div>
+      <div><div class="num" style="font-size:30px">${avg(steps)}</div><div class="small muted">Avg steps</div></div></div></div>
+    <div class="card flat">${rows}</div>
+    <div class="card flat"><div class="li"><span class="t"><b>Recovery week</b><div class="small muted">Two sets per lift at about 60% effort, easy walks. Use it when your resting HR runs high, sleep slips or lifts stall.</div></span><button class="box" data-a="recov" data-k="${ws}" aria-pressed="${!!S.recovery[ws]}" aria-label="Mark this a recovery week">${CHECK}</button></div></div>
+    <p class="muted small">Zone 2 target is at least 150 minutes a week. Percent shows the session, protein, water, supplements and post-lunch walk.</p>`;
+}
+
+function mealCard(m, extra = '') {
+  return `<div class="meal"><div class="row between"><div class="grow"><div class="nm">${esc(m.n)}</div><div class="mx">${esc(m.d)}</div><div class="mx">~${m.k} kcal · ${m.p} g protein</div></div>${extra}</div></div>`;
+}
+function renderMeals() {
+  const seg = `<div class="seg"><button data-a="msub" data-v="menu" aria-pressed="${ui.meals === 'menu'}">Week</button><button data-a="msub" data-v="swaps" aria-pressed="${ui.meals === 'swaps'}">Swaps</button><button data-a="msub" data-v="shop" aria-pressed="${ui.meals === 'shop'}">Grocery</button></div>`;
+  let body = '';
+  if (ui.meals === 'menu') {
+    const order = [1, 2, 3, 4, 5, 6, 0];
+    body = order.map((w) => `<h2>${DOWL[w]}</h2><div class="card flat">
+      ${mealCard(M1[w % 5]).replace('<div class="nm">', '<div class="small muted">First meal · 11 AM</div><div class="nm">')}
+      ${mealCard(LUNCH[(w + 2) % 5]).replace('<div class="nm">', '<div class="small muted">Lunch · 1–2 PM</div><div class="nm">')}
+      ${mealCard(DIN[w]).replace('<div class="nm">', '<div class="small muted">Dinner · family meal, your portions</div><div class="nm">')}</div>`).join('');
+    body = `<p class="muted small">Built around oats, beans, nuts and olive oil, with one red-meat dinner a week. Each day lands near ${S.settings.protein} g protein and ${S.settings.kcal} kcal with a whey shake and a snack. Calories are estimates. Dinner is the family meal at your portion size.</p>` + body;
+  } else if (ui.meals === 'swaps') {
+    body = `<h2>First meal</h2><div class="card flat">${M1.map((m) => mealCard(m)).join('')}</div>
+      <h2>Lunch</h2><div class="card flat">${LUNCH.map((m) => mealCard(m)).join('')}</div>
+      <h2>Light dinner (after an open lunch)</h2><div class="card flat">${LIGHT.map((m) => mealCard(m)).join('')}</div>
+      <h2>Open lunch rules</h2><div class="card"><ul style="margin:0;padding-left:20px"><li>Order what you want. Lead with protein and vegetables.</li><li>Treat it as an estimate of about 800 kcal and 40 g protein.</li><li>Have a light dinner, and skip nothing else that day.</li><li>Walk 10–15 minutes afterward.</li></ul></div>`;
+  } else {
+    body = `<p class="muted small">Quantities cover your own meals for a week. Scale up the dinner items for the family.</p>` + GROCERY.map(([sec, items]) => `<h2>${sec}</h2><div class="card flat">${items.map((t) => `<div class="li"><button class="box" data-a="gro" data-t="${esc(t)}" aria-pressed="${!!S.grocery[t]}" aria-label="${esc(t)}">${CHECK}</button><span class="t"${S.grocery[t] ? ' style="color:var(--muted);text-decoration:line-through"' : ''}>${esc(t)}</span></div>`).join('')}</div>`).join('') + `<button class="btn ghost block" data-a="groreset" style="margin-top:12px">Clear all checks</button>`;
+  }
+  $('#view').innerHTML = `<h1>Meals</h1>${seg}${body}`;
+}
+
+function series(field) {
+  const out = [];
+  S.scans.forEach((s) => { if (s[field] !== '' && s[field] != null) out.push([s.date, num(s[field])]); });
+  S.measures.forEach((s) => { if (s[field] !== '' && s[field] != null) out.push([s.date, num(s[field])]); });
+  S.labs.forEach((s) => { if (s[field] !== '' && s[field] != null) out.push([s.date, num(s[field])]); });
+  return out.sort((a, b) => (a[0] < b[0] ? -1 : 1));
+}
+function spark(pts) {
+  if (pts.length < 2) return '<div class="small muted">Add two entries to see a trend.</div>';
+  const vs = pts.map((p) => p[1]), mn = Math.min(...vs), mx = Math.max(...vs), r = mx - mn || 1;
+  const xy = pts.map((p, i) => [4 + (i / (pts.length - 1)) * 292, 50 - ((p[1] - mn) / r) * 44]);
+  return `<svg class="spark" viewBox="0 0 300 56" preserveAspectRatio="none" aria-hidden="true"><polyline points="${xy.map((p) => p.join(',')).join(' ')}"/><circle cx="${xy[xy.length - 1][0]}" cy="${xy[xy.length - 1][1]}" r="3.5"/></svg>`;
+}
+function renderLog() {
+  const seg = `<div class="seg"><button data-a="lsub" data-v="scan" aria-pressed="${ui.log === 'scan'}">Scan</button><button data-a="lsub" data-v="measure" aria-pressed="${ui.log === 'measure'}">Measure</button><button data-a="lsub" data-v="labs" aria-pressed="${ui.log === 'labs'}">Labs</button><button data-a="lsub" data-v="trends" aria-pressed="${ui.log === 'trends'}">Trends</button></div>`;
+  let body = '';
+  const t = today();
+  if (ui.log === 'scan') {
+    body = `<div class="card"><p class="muted small">Weigh in the morning before eating or drinking, after using the bathroom, on the same scale every time.</p>
+      <form id="scanform" class="form"><div class="full"><label class="f" for="s_date">Date</label><input id="s_date" type="date" name="date" value="${t}" required></div>
+      <div><label class="f" for="s_w">Weight (lb)</label><input id="s_w" name="weight" inputmode="decimal" required></div>
+      <div><label class="f" for="s_b">BMI</label><input id="s_b" name="bmi" inputmode="decimal"></div>
+      <div><label class="f" for="s_f">Body fat %</label><input id="s_f" name="bf" inputmode="decimal"></div>
+      <div><label class="f" for="s_m">Muscle %</label><input id="s_m" name="muscle" inputmode="decimal"></div>
+      <div><label class="f" for="s_v">Visceral fat</label><input id="s_v" name="vf" inputmode="decimal"></div>
+      <div><label class="f" for="s_r">RM (kcal)</label><input id="s_r" name="rm" inputmode="numeric"></div>
+      <div class="full"><label class="f" for="s_a">Body age</label><input id="s_a" name="age" inputmode="numeric"></div>
+      <div class="full"><button class="btn block" type="submit">Save scan</button></div></form></div>`;
+  } else if (ui.log === 'measure') {
+    body = `<div class="card"><p class="muted small">Use a soft tape on bare skin, in the morning. Wrap it level with the floor at the midpoint between your lowest rib and the top of your hip bone, snug but not pressing. Read it at the end of a normal exhale and don't suck in. Take it twice and enter the second reading. Use the same spot every time.</p>
+      <p class="muted small">A good long-term target is a waist under half your height.</p>
+      <form id="measform" class="form"><div class="full"><label class="f" for="m_date">Date</label><input id="m_date" type="date" name="date" value="${t}" required></div>
+      <div><label class="f" for="m_w">Waist (in)</label><input id="m_w" name="waist" inputmode="decimal"></div>
+      <div><label class="f" for="m_wt">Weight (lb)</label><input id="m_wt" name="weight" inputmode="decimal"></div>
+      <div class="full"><button class="btn block" type="submit">Save measurements</button></div></form></div>`;
+  } else if (ui.log === 'labs') {
+    body = `<div class="card"><p class="muted small">Enter what's on your lab report. Fill in only what you have.</p>
+      <form id="labform" class="form"><div class="full"><label class="f" for="l_date">Date drawn</label><input id="l_date" type="date" name="date" value="${t}" required></div>
+      <div><label class="f" for="l_ldl">LDL (mg/dL)</label><input id="l_ldl" name="ldl" inputmode="decimal"></div>
+      <div><label class="f" for="l_hdl">HDL (mg/dL)</label><input id="l_hdl" name="hdl" inputmode="decimal"></div>
+      <div><label class="f" for="l_tg">Triglycerides</label><input id="l_tg" name="tg" inputmode="decimal"></div>
+      <div><label class="f" for="l_a1c">A1c (%)</label><input id="l_a1c" name="a1c" inputmode="decimal"></div>
+      <div class="full"><label class="f" for="l_vd">Vitamin D (ng/mL)</label><input id="l_vd" name="vitd" inputmode="decimal"></div>
+      <div class="full"><button class="btn block" type="submit">Save labs</button></div></form></div>`;
+  } else {
+    const defs = [['weight', 'Weight (lb)'], ['waist', 'Waist (in)'], ['bf', 'Body fat %'], ['muscle', 'Muscle %'], ['vf', 'Visceral fat'], ['ldl', 'LDL (mg/dL)'], ['hdl', 'HDL (mg/dL)'], ['tg', 'Triglycerides (mg/dL)'], ['a1c', 'A1c (%)'], ['vitd', 'Vitamin D (ng/mL)']];
+    const cards = defs.map(([f, n]) => { const s = series(f); if (!s.length) return ''; const last = s[s.length - 1][1], first = s[0][1], dlt = Math.round((last - first) * 10) / 10;
+      return `<div class="card"><div class="row between"><b>${n}</b><span class="num" style="font-size:24px">${last}</span></div>${spark(s)}<div class="small muted">${s.length > 1 ? (dlt > 0 ? '+' : '') + dlt + ' since ' + fmtShort(s[0][0]) : 'First entry ' + fmtShort(s[0][0])}</div></div>`; }).join('');
+    const rhr = Object.keys(S.days).sort().filter((x) => D(x).rhr).slice(-7).map((x) => [x, num(D(x).rhr)]);
+    const hist = [...S.scans.map((s) => ({ ...s, kind: 'scan' })), ...S.measures.map((s) => ({ ...s, kind: 'meas' })), ...S.labs.map((s) => ({ ...s, kind: 'lab' }))].sort((a, b) => (a.date < b.date ? 1 : -1));
+    body = (cards || '<div class="card"><p class="muted">No entries yet. Save a scan or measurement and your trends appear here.</p></div>') +
+      (rhr.length ? `<div class="card"><div class="row between"><b>Resting HR, last ${rhr.length} days</b><span class="num" style="font-size:24px">${rhr[rhr.length - 1][1]}</span></div>${spark(rhr)}</div>` : '') +
+      (hist.length ? `<h2>History</h2><div class="card flat">${hist.map((h) => `<div class="li"><span class="t">${fmtShort(h.date)} · ${{ scan: 'Scan', meas: 'Measure', lab: 'Labs' }[h.kind]}<div class="small muted">${(h.kind === 'scan' ? [h.weight && h.weight + ' lb', h.bf && h.bf + '% fat', h.muscle && h.muscle + '% muscle', h.vf && 'VF ' + h.vf] : h.kind === 'lab' ? [h.ldl && 'LDL ' + h.ldl, h.hdl && 'HDL ' + h.hdl, h.tg && 'TG ' + h.tg, h.a1c && 'A1c ' + h.a1c, h.vitd && 'Vit D ' + h.vitd] : [h.waist && h.waist + ' in waist', h.weight && h.weight + ' lb']).filter(Boolean).join(' · ')}</div></span><button class="btn sm ghost" data-a="dellog" data-kind="${h.kind}" data-date="${h.date}">Delete</button></div>`).join('')}</div>` : '');
+  }
+  $('#view').innerHTML = `<h1>Log</h1>${seg}${body}`;
+}
+
+function renderPlan() {
+  const st = S.settings;
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  const Q = ['Can I get an ECG, given my family history and lipid results?', 'Should my high RBC and nasal obstruction prompt a sleep apnea screen?', 'Do my lipids need further testing beyond lifestyle changes?', 'Can we check apoB and Lp(a), and consider a coronary calcium scan?', 'Review my supplement list, including zinc 50 mg with copper 2 mg.', 'Order serum copper, ceruloplasmin and zinc.'];
+  $('#view').innerHTML = `<h1>Plan</h1>
+    ${standalone ? '' : `<div class="card"><b>Add this to your home screen</b><p class="muted small" style="margin:4px 0 0">On iPhone: open this page in Safari, tap Share, then Add to Home Screen. Do this first, then enter your data from the home-screen icon, because the icon keeps its own saved data.</p></div>`}
+    <details class="card" open><summary>Heart rate and safety</summary><div class="body"><ul>
+      <li>Zone 2 is 109–127 bpm on your Polar, which is also the cap for the easy finisher. If you can't speak full sentences, slow down.</li>
+      <li>Keep strength sets at RPE 7–8, stopping 1–3 reps short of failure. Exhale on the effort and never hold your breath.</li>
+      <li>No hard intervals and no bootcamp-style sessions until you have been cleared.</li>
+      <li>Stop and call your PA for chest pain or pressure, palpitations, lightheadedness, fainting or unusual breathlessness.</li>
+      <li>Record a seated resting HR each morning with your chest strap.</li></ul></div></details>
+    <details class="card"><summary>Weekly shape</summary><div class="body"><table class="t"><tr><th>Day</th><th>Session</th></tr>${[1, 2, 3, 4, 5, 6, 0].map((w) => `<tr><td>${DOW[w]}</td><td>${SCHED[w].title}</td></tr>`).join('')}</table><p class="small muted" style="margin-top:8px">Walk every day. Aim for 8–10k steps on non-walk days and at least 150 Zone 2 minutes a week.</p></div></details>
+    <details class="card"><summary>Heart-friendly foods</summary><div class="body"><p class="small">Food changes are the strongest natural way to lower LDL. Together they can plausibly take it down by 20–30%.</p><ul>
+      <li><b>Oats or barley:</b> about 3 g of beta-glucan a day, roughly ¾ cup dry oats.</li>
+      <li><b>Beans and lentils:</b> about a cup cooked a day. Swap them in for part of your meat or starch.</li>
+      <li><b>Nuts:</b> an ounce a day of walnuts or almonds.</li>
+      <li><b>Olive oil</b> in place of butter, and one red-meat dinner a week at most.</li>
+      <li><b>Optional:</b> psyllium (10 g a day) and plant sterols (about 2 g a day). Take psyllium 2 hours apart from other supplements.</li>
+      <li><b>Coffee:</b> filtered or drip is fine. French press and boiled coffee raise LDL.</li></ul>
+      <p class="small muted">Berberine and other supplements are paused so a lab change can be credited to food and training. Fine dining stays on the menu as your open meals.</p></div></details>
+    <details class="card"><summary>Review rhythm</summary><div class="body"><ul>
+      <li><b>Every 2 weeks:</b> waist, midway between your lowest rib and hip bone.</li>
+      <li><b>Every 4 weeks:</b> body scan, then check your numbers against the decision rules.</li>
+      <li><b>About every 12 weeks:</b> labs (lipids, A1c, vitamin D, blood count).</li>
+      <li><b>When your body says so:</b> a recovery week if resting HR runs 5+ bpm high or you have gone 8 weeks without an easy one.</li></ul>
+      <p class="small muted">The Today tab flags each one when it is due. Nothing here expires.</p></div></details>
+    <details class="card"><summary>At each review: decision rules</summary><div class="body"><p class="small muted">Use these if you followed the plan on at least 80% of days.</p><ul>
+      <li>Waist and weight flat for 2 reviews: cut 150–200 kcal or add 10 minutes to walks. Don't add intensity.</li>
+      <li>Strength stalls and resting HR is up or sleep is poor: take a recovery week. Don't cut food further.</li>
+      <li>Weight falling faster than 1.5 lb a week: add 150–200 kcal.</li>
+      <li>Any chest pain, palpitations or lightheadedness: stop and report it.</li></ul>
+      <p class="small muted">Lipids vary by 10% or more between draws, so judge them with waist, strength and Zone 2 pace.</p></div></details>
+    <details class="card"><summary>Supplements between lab checks</summary><div class="body"><p class="small">Holding the list steady lets any lab change be credited to training and food. Your daily list is in Settings below.</p><ul>
+      <li>Keep: creatine, vitamin D3, magnesium.</li><li>Paused: berberine, fish oil, ashwagandha, NMN, zinc and copper, collagen.</li></ul><p class="small muted">Add one back at a time after your next labs if you want to test it.</p></div></details>
+    <details class="card"><summary>Questions for your PA</summary><div class="body">${Q.map((q, i) => `<div class="li" style="padding-left:0;padding-right:0"><button class="box" data-a="qchk" data-i="${i}" aria-pressed="${!!S.qs[i]}" aria-label="${esc(q)}">${CHECK}</button><span class="t small">${esc(q)}</span></div>`).join('')}</div></details>
+    <details class="card"><summary>Settings and backup</summary><div class="body">
+      <div class="form"><div class="full"><label class="f" for="st_start">Start date (day 1 of week 1)</label><input id="st_start" type="date" data-f="setting" data-p="start" value="${st.start}"></div>
+      <div><label class="f" for="st_p">Protein goal (g)</label><input id="st_p" inputmode="numeric" data-f="setting" data-p="protein" value="${st.protein}"></div>
+      <div><label class="f" for="st_k">Calorie goal</label><input id="st_k" inputmode="numeric" data-f="setting" data-p="kcal" value="${st.kcal}"></div>
+      <div class="full"><label class="f" for="st_w">Water goal (oz)</label><input id="st_w" inputmode="numeric" data-f="setting" data-p="water" value="${st.water}"></div>
+      <div class="full"><label class="f" for="st_l">Heart-friendly food checklist, one per line</label><textarea id="st_l" class="inp" data-f="ldl">${esc(st.ldl.join('\n'))}</textarea></div>
+      <div class="full"><label class="f" for="st_s">Daily supplements, one per line</label><textarea id="st_s" class="inp" data-f="supps">${esc(st.supps.join('\n'))}</textarea></div></div>
+      <p class="small muted" style="margin-top:12px">Your data lives only on this phone. Back it up now and then.</p>
+      <div class="row" style="flex-wrap:wrap"><button class="btn sm" data-a="backup">Copy backup</button><button class="btn sm ghost" data-a="restore">Restore from paste</button></div>
+      <textarea id="restorebox" class="inp" placeholder="Paste a backup here, then tap Restore from paste" style="margin-top:10px"></textarea>
+      <button class="btn sm ghost" data-a="wipe" style="margin-top:10px;color:var(--warn);border-color:var(--warn)">Erase all data</button></div></details>`;
+}
+
+const VIEWS = { today: renderToday, week: renderWeek, meals: renderMeals, log: renderLog, plan: renderPlan };
+function render(keepScroll) {
+  const y = window.scrollY;
+  VIEWS[ui.tab]();
+  document.querySelectorAll('#tabs button').forEach((b) => { if (b.dataset.v === ui.tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  window.scrollTo(0, keepScroll ? y : 0);
+  if (typeof tickClock === 'function') tickClock();
+}
+
+/* ---------- actions ---------- */
+const A = {
+  tab(el) { ui.tab = el.dataset.v; render(false); },
+  goto(el) { ui.tab = el.dataset.v; if (el.dataset.s) ui.log = el.dataset.s; render(false); },
+  date(el) { ui.date = el.dataset.k; if (el.dataset.go) ui.tab = el.dataset.go; render(!el.dataset.go); },
+  tset(el) { const ex = findEx(el.dataset.ex), s = setsFor(ui.date, ex)[+el.dataset.i]; s.d = !s.d; save(); render(true); if (s.d) startRest(75); },
+  addset(el) { const ex = findEx(el.dataset.ex), a = setsFor(ui.date, ex); const l = a[a.length - 1] || { w: '', r: '' }; a.push({ w: l.w, r: l.r, d: false }); save(); render(true); },
+  sstart() { W(ui.date).start = Date.now(); save(); render(true); },
+  sreset() { W(ui.date).start = 0; save(); render(true); },
+  blk(el) { const d = W(ui.date); d.blk = d.blk || {}; d.blk[el.dataset.b] = !d.blk[el.dataset.b]; save(); render(true); },
+  recov(el) { S.recovery[el.dataset.k] = !S.recovery[el.dataset.k]; save(); render(true); },
+  done() { const d = W(ui.date); d.done = !d.done; save(); render(true); if (d.done) toast('Session logged'); },
+  restskip() { clearInterval(restI); $('#rest').classList.remove('on'); },
+  supp(el) { const d = W(ui.date); d.supp = d.supp || {}; d.supp[el.dataset.i] = !d.supp[el.dataset.i]; save(); render(true); },
+  ldl(el) { const d = W(ui.date); d.ldl = d.ldl || {}; d.ldl[el.dataset.i] = !d.ldl[el.dataset.i]; save(); render(true); },
+  walk() { const d = W(ui.date); d.walk = !d.walk; save(); render(true); },
+  water(el) { const d = W(ui.date); d.water = Math.max(0, num(d.water) + num(el.dataset.n)); save(); render(true); },
+  open() { const d = W(ui.date); d.open = !d.open; save(); render(true); },
+  swap(el) { const d = W(ui.date); d.sw = d.sw || {}; d.sw[el.dataset.slot] = (d.sw[el.dataset.slot] || 0) + 1; save(); render(true); },
+  meal(el) { const m = [...M1, ...LUNCH, ...LIGHT, ...Object.values(DIN)].find((x) => x.id === el.dataset.id); if (!m) return; const d = W(ui.date); (d.fuel = d.fuel || []).push({ t: m.n, p: m.p, k: m.k, mid: m.id }); save(); render(true); toast('Logged ' + m.p + ' g protein'); },
+  unmeal(el) { const d = W(ui.date); d.fuel = (d.fuel || []).filter((e) => e.mid !== el.dataset.id); save(); render(true); },
+  openlog() { const d = W(ui.date); (d.fuel = d.fuel || []).push({ t: 'Open lunch (estimate)', p: 40, k: 800, mid: 'open' }); save(); render(true); },
+  quick(el) { const d = W(ui.date); (d.fuel = d.fuel || []).push({ t: el.dataset.t, p: num(el.dataset.p), k: num(el.dataset.k) }); save(); render(true); },
+  custom() { const t = prompt('What did you eat?'); if (!t) return; const p = prompt('Protein in grams?', '0'); const k = prompt('Calories?', '0'); const d = W(ui.date); (d.fuel = d.fuel || []).push({ t, p: num(p), k: num(k) }); save(); render(true); },
+  delfuel(el) { const d = W(ui.date); d.fuel.splice(+el.dataset.i, 1); save(); render(true); },
+  msub(el) { ui.meals = el.dataset.v; render(false); },
+  lsub(el) { ui.log = el.dataset.v; render(false); },
+  gro(el) { const t = el.dataset.t; S.grocery[t] = !S.grocery[t]; save(); render(true); },
+  groreset() { S.grocery = {}; save(); render(true); },
+  qchk(el) { S.qs[el.dataset.i] = !S.qs[el.dataset.i]; save(); render(true); },
+  dellog(el) { const arr = el.dataset.kind === 'scan' ? S.scans : el.dataset.kind === 'lab' ? S.labs : S.measures; const i = arr.findIndex((x) => x.date === el.dataset.date); if (i > -1 && confirm('Delete this entry?')) { arr.splice(i, 1); save(); render(true); } },
+  backup() { S.settings.lastBackup = today(); save(); const txt = JSON.stringify(S); (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast('Backup copied. Paste it into Notes.'), () => { const b = $('#restorebox'); b.value = txt; b.select(); toast('Select all and copy the text'); }); },
+  restore() { try { const o = JSON.parse($('#restorebox').value); if (!o || !o.settings || !o.days) throw 0; if (!confirm('Replace everything on this phone with the backup?')) return; S = { ...DEF(), ...o }; save(); render(false); toast('Backup restored'); } catch (e) { toast('That is not a valid backup'); } },
+  wipe() { if (confirm('Erase all data on this phone? This cannot be undone.')) { S = DEF(); save(); render(false); toast('Data erased'); } }
+};
+function findEx(id) { for (const w of Object.values(WK)) for (const e of w) if (e.id === id) return e; }
+
+document.addEventListener('click', (e) => { const el = e.target.closest('[data-a]'); if (el && A[el.dataset.a]) A[el.dataset.a](el); });
+document.addEventListener('change', (e) => {
+  const el = e.target, f = el.dataset.f; if (!f) return;
+  if (f === 'set') { const ex = findEx(el.dataset.ex); setsFor(ui.date, ex)[+el.dataset.i][el.dataset.p] = el.value; }
+  else if (f === 'day') { W(ui.date)[el.dataset.p] = el.value; }
+  else if (f === 'setting') { S.settings[el.dataset.p] = el.dataset.p === 'start' ? (el.value || S.settings.start) : num(el.value) || S.settings[el.dataset.p]; }
+  else if (f === 'ldl') { S.settings.ldl = el.value.split('\n').map((x) => x.trim()).filter(Boolean); }
+  else if (f === 'supps') { S.settings.supps = el.value.split('\n').map((x) => x.trim()).filter(Boolean); }
+  save();
+});
+document.addEventListener('submit', (e) => {
+  e.preventDefault(); const f = e.target; const o = Object.fromEntries(new FormData(f).entries());
+  if (f.id === 'scanform') { S.scans = S.scans.filter((x) => x.date !== o.date); S.scans.push(o); toast('Scan saved'); }
+  else if (f.id === 'labform') { S.labs = S.labs.filter((x) => x.date !== o.date); S.labs.push(o); toast('Labs saved'); }
+  else if (f.id === 'measform') { S.measures = S.measures.filter((x) => x.date !== o.date); S.measures.push(o); toast('Measurements saved'); }
+  save(); ui.log = 'trends'; render(false);
+});
+
+function tickClock() {
+  const el = $('#sclock'); if (!el) return; const st = D(ui.date).start; if (!st) return;
+  const min = (Date.now() - st) / 6e4, left = Math.max(0, 50 * 60 - Math.round((Date.now() - st) / 1000));
+  el.textContent = Math.floor(left / 60) + ':' + pad(left % 60);
+  document.querySelectorAll('.blk').forEach((b) => b.classList.toggle('now', min >= +b.dataset.from && min < +b.dataset.to));
+}
+setInterval(tickClock, 1000);
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+render(false); tickClock();
+window.__strong12 = { render, ui, get S() { return S; }, A };
+})();
+</script>
+</body>
+</html>
